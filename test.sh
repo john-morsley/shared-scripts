@@ -1,5 +1,7 @@
 ﻿#!/usr/bin/env bash
 
-echo 'Shared Scripts - Test'
+source common/header.sh
+
+header "Hello, World!"
 
 exit 0
