@@ -1,6 +1,6 @@
 ﻿#!/usr/bin/env bash
 
-source common/header.sh
+source ./common/header.sh
 
 header "Hello, World!"
 
