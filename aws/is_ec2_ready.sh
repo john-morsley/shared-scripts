@@ -16,7 +16,6 @@
 #                                   __/ |       
 #                                   |___/        
 
-
 # Requires:
 # - AWS CLI
 # - jq
@@ -107,22 +106,19 @@ is_ec2_ready() {
     fi
     
     instance_state=$(jq --raw-output '.InstanceStatuses[].InstanceState.Name' <<< $instance_statuses)
-    
-    echo "Instance State: '${instance_state}'"
-    
+        
     if [[ "$instance_state" != "running" ]]; then
+        echo "Instance State: '${instance_state}'"
         return 0
     fi
     
     instance_status=$(jq --raw-output '.InstanceStatuses[].InstanceStatus.Details[] | select(.Name=="reachability") | .Status' <<< $instance_statuses)
-    
-    echo "Instance Status: '${instance_status}'"
-    
+        
     system_status=$(jq --raw-output '.InstanceStatuses[].SystemStatus.Details[] | select(.Name=="reachability") | .Status' <<< $instance_statuses)
     
-    echo "System Status: '${system_status}'"
+    echo "Instance State: '${instance_state}', Instance Status: '${instance_status}', System Status: '${system_status}'"
     
-    if [[ "$instance_status" != "passed" || "$system_status" != "passed" ]]; then
+    if [[ "$instance_status" != "passed" || "$system_status" != "passed" ]]; then                        
         return 0
     fi
     
