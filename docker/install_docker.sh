@@ -13,16 +13,16 @@
 #          | |__| | (_) | (__|   <  __/ |   
 #          |_____/ \___/ \___|_|\_\___|_|   
 
-DIRECTORY="$(dirname "$0")"
+#DIRECTORY="$(dirname "$0")"
 
-source ${DIRECTORY}/../common/header.sh
+#source ${DIRECTORY}/../common/header.sh
                                                                  
-header 'INSTALLING DOCKER'
+#header 'INSTALLING DOCKER'
 
 curl https://releases.rancher.com/install-docker/19.03.sh | sh
 
 sudo usermod -aG docker ubuntu
 
-header 'DOCKER INSTALLED'
+#header 'DOCKER INSTALLED'
 
 exit 0

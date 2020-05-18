@@ -15,11 +15,11 @@
 #                                  __/ |       
 #                                 |___/        
 
-DIRECTORY="$(dirname "$0")"
+#DIRECTORY="$(dirname "$0")"
 
-source ${DIRECTORY}/../common/header.sh
+#source ${DIRECTORY}/../common/header.sh
 
-header 'IS DOCKER READY?'
+#header 'IS DOCKER READY?'
 
 is_docker_running () {
 
@@ -51,6 +51,6 @@ done
 echo "docker info"
 docker info
 
-header 'DOCKER IS READY'
+#header 'DOCKER IS READY'
 
 exit 0
