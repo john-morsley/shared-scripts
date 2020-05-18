@@ -1,6 +1,8 @@
 ﻿#!/usr/bin/env bash
 
-source $(pwd)/common/header.sh
+DIRECTORY="$(dirname "$0")"
+
+source ${DIRECTORY}/common/header.sh
 
 header "Hello, World!"
 
