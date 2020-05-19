@@ -12,6 +12,4 @@ function header() {
   done
   echo "> ${HEADER_TEXT}"
 
-  exit 0
-
 }
