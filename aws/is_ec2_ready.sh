@@ -21,7 +21,7 @@
 
 DIRECTORY="$(dirname "$0")"
 
-source ${DIRECTORY}/common/header.sh
+source ${DIRECTORY}/../common/header.sh
 
 # Expects:
 # 1 --> NAME (Required): The name of the EC2 instance we are checking.
