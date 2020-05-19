@@ -1,6 +1,5 @@
 ﻿#!/usr/bin/env bash
 
-
 #      _____       ______    _____   ___     
 #     |_   _|     |  ____|  / ____| |__ \   
 #       | |  ___  | |__    | |         ) | 
@@ -14,15 +13,21 @@
 #          | | \ \  __/ (_| | (_| | |_| |  |_|
 #          |_|  \_\___|\__,_|\__,_|\__, |  (_)
 #                                   __/ |       
-#                                   |___/        
+#                                  |___/        
 
 # Requires:
 # - AWS CLI
 # - jq
 
+DIRECTORY="$(dirname "$0")"
+
+source ${DIRECTORY}/common/header.sh
+
 # Expects:
 # 1 --> NAME (Required): The name of the EC2 instance we are checking.
 # 2 --> TIMEOUT, in minutes (Optional, default: 5)
+
+header "IS EC2 READY?"
 
 NAME=$1
 if [[ -z "${NAME}" ]]; then
@@ -37,8 +42,6 @@ if [[ -z "${TIMEOUT}" ]]; then
     TIMEOUT=5
 fi
 echo "TIMEOUT: ${TIMEOUT} (minutes)"
-
-echo 'IS EC2 READY...?'
 
 echo "Looking for instance: '${NAME}'"
 
@@ -144,9 +147,10 @@ do
 done
 
 if [[ "$ready" == true ]]; then
-    echo 'EC2 IS READY :-)'
+    header "EC2 IS READY :-)"
     exit 0
 fi 
 
-echo 'EC2 IS NOT READY :-('
+header "EC2 IS NOT READY :-("
+
 exit 666
