@@ -1,12 +1,28 @@
 #!/bin/bash
 
+BLACK=$(tput setaf 0)
+RED=$(tput setaf 1)
+GREEN=$(tput setaf 2)
+YELLOW=$(tput setaf 3)
+LIME_YELLOW=$(tput setaf 190)
+POWDER_BLUE=$(tput setaf 153)
+BLUE=$(tput setaf 4)
+MAGENTA=$(tput setaf 5)
+CYAN=$(tput setaf 6)
+WHITE=$(tput setaf 7)
+BRIGHT=$(tput bold)
+NORMAL=$(tput sgr0)
+BLINK=$(tput blink)
+DIM=$(tput dim)
+BOLD=$(tput bold)
+
 function print_deployment_header() {
-  echo "----------+-----------+-----------+-----------+---------------------------------"
+  echo "${DIM}-------+----------+-----------+---------+---------------------------------------${NORMAL}"
 }
 
 function print_deployment_headers() {  
   print_deployment_header
-  echo "    Ready |  Expected | Available |   Updated | Deployment"
+  echo "${DIM} Ready | Expected | Available | Updated | Deployment${NORMAL}"
   print_deployment_header
 }
 
@@ -15,8 +31,21 @@ function print_deployment_row() {
   expected=$2
   available=$3
   updated=$4
-  deployment_name=$5              
-  printf "%9d | %9d | %9d | %9d | %s\n" ${ready} ${expected} ${available} ${updated} ${deployment_name}
+  deployment_name=$5
+  
+  if [[ "${ready}" -eq "${expected}" && "${expected}" -eq "${available}" ]]; then
+    colour=${GREEN}
+  else
+    colour=${RED}
+  fi
+  
+  ready="${ready}"
+                
+  printf "${colour}%6d${NORMAL} ${DIM}|${NORMAL} " ${ready}
+  printf "${colour}%8d${NORMAL} ${DIM}|${NORMAL} " ${expected}
+  printf "${colour}%9d${NORMAL} ${DIM}|${NORMAL} " ${available}
+  printf "%7d ${DIM}|${NORMAL} " ${updated}
+  printf "%s\n" ${deployment_name}
 }
 
 function deployment_statuses () {

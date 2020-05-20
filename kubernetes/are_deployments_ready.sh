@@ -35,30 +35,30 @@ set -e -o pipefail -u
 
 DIRECTORY="$(dirname "$0")"
 
-source ${DIRECTORY}/../common/header.sh
-source ${DIRECTORY}/../common/divider.sh
-source ${DIRECTORY}/../common/is_numeric.sh
-source ${DIRECTORY}/../common/footer.sh
+source ${DIRECTORY}/../common/functions.sh
 source ${DIRECTORY}/deployment_functions.sh
 
 header "ARE DEPLOYMENTS READY?"
 
 # Parameters...
 
+NORMAL=$(tput sgr0)
+DIM=$(tput dim)
+
 KUBE_CONFIG=$1
 if [[ -z "${KUBE_CONFIG}" ]]; then   
     echo "No KUBE_CONFIG supplied!"
-    footer "ARE DEPLOYMENTS READY? *NO*"
+    footer "ARE DEPLOYMENTS READY?" "NO"
     exit 666
 fi
-echo "KUBE_CONFIG:" ${KUBE_CONFIG}
+echo "${DIM}KUBE_CONFIG:${NORMAL} ${KUBE_CONFIG}"
 
 NAMESPACE=${2:-"ALL"}
 if [[ ${NAMESPACE} == "ALL" ]]; then
     echo "No namespace supplied."
     GET_DEPLOYMENTS_COMMAND="kubectl get deployments --all-namespaces --output json"
 else
-    echo "NAMESPACE:" ${NAMESPACE}
+    echo "${DIM}NAMESPACE:${NORMAL} ${NAMESPACE}"
     GET_DEPLOYMENTS_COMMAND="kubectl get deployments --namespace ${NAMESPACE} --output json"
 fi
 print_divider
@@ -90,7 +90,7 @@ number_of_deployments=$(jq '.items | length' <<< $deployments_json)
 
 if [[ ${number_of_deployments} == 0 ]]; then 
   echo "No deployments!"
-  footer "IS CLUSTER READY? *NO* :-("
+  footer "IS CLUSTER READY? :-(" "NO"
   exit 666  
 else
 
@@ -130,7 +130,7 @@ else
 fi
 print_divider
 
-footer "ARE DEPLOYMENTS READY? *YES*"
+footer "ARE DEPLOYMENTS READY?" "YES"
 
 # Error Handling...
 

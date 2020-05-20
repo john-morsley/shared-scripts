@@ -1,0 +1,86 @@
+#!/bin/bash
+  
+DIM=$(tput dim)
+NORMAL=$(tput sgr0)  
+RED=$(tput setaf 1)
+GREEN=$(tput setaf 2)
+YELLOW=$(tput setaf 3)
+BOLD=$(tput bold)
+
+function error() {
+  JOB="$0"
+  LAST_LINE="$1"
+  LAST_ERROR="$2"
+  echo "ERROR in ${JOB} : line ${LAST_LINE} with exit code ${LAST_ERROR}"  
+  exit 666
+}
+
+function footer() { 
+
+  FOOTER_TEXT=$1
+  STATUS=${2:-"OK"}
+
+  length_of_footer_text=${#FOOTER_TEXT}
+  length_of_footer_status=${#STATUS}
+
+  for (( i=1; i<=78-length_of_footer_text-length_of_footer_status; i++ ))
+  do  
+    printf "="
+  done 
+  status_colour=${YELLOW}    
+  
+  if [[ ${STATUS} == "YES" ]]; then
+    status_colour=${GREEN}
+  elif [[ ${STATUS} == "NO" ]]; then
+    status_colour=${RED}
+  elif [[ ${STATUS} == "ERROR" ]]; then
+    status_colour=${RED}
+  fi
+  printf " ${BOLD}${FOOTER_TEXT}${NORMAL} ${status_colour}${STATUS}${NORMAL}"
+
+}
+
+function header() { 
+
+  HEADER_TEXT=$1
+
+  LengthOfHeaderText=${#HEADER_TEXT}
+
+  for (( i=1; i<=79-LengthOfHeaderText; i++ ))
+  do  
+     echo -n "="
+  done
+  echo " ${BOLD}${HEADER_TEXT}${NORMAL}"
+
+}
+
+function is_numeric() { 
+
+  NUMBER=$1
+
+  if [ "$1" -eq "$1" ] 2>/dev/null; then
+    echo "Yes"
+  else
+    echo "No"  
+  fi
+
+}
+
+function print_dim {
+  TEXT=$1  
+  echo "${DIM}${TEXT}${NORMAL}"
+}
+
+function print_divider {  
+  echo "${DIM}--------------------------------------------------------------------------------${NORMAL}"
+}
+
+function print_green {
+  TEXT=$1  
+  echo "${GREEN}${TEXT}${NORMAL}"
+}
+
+function print_red {
+  TEXT=$1  
+  echo "${RED}${TEXT}${NORMAL}"
+}

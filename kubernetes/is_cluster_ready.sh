@@ -27,22 +27,22 @@ set -e -o pipefail -u
 
 DIRECTORY="$(dirname "$0")"
 
-source ${DIRECTORY}/../common/error.sh
-source ${DIRECTORY}/../common/divider.sh
-source ${DIRECTORY}/../common/header.sh
-source ${DIRECTORY}/../common/footer.sh
+source ${DIRECTORY}/../common/functions.sh
 
 header "IS CLUSTER READY?"
 
 # Parameters...
 
+NORMAL=$(tput sgr0)
+DIM=$(tput dim)
+
 KUBE_CONFIG=$1
 if [[ -z "${KUBE_CONFIG}" ]]; then
   echo "No KUBE_CONFIG supplied!"
-  footer "IS CLUSTER READY? *NO* :-("
+  footer "IS CLUSTER READY?" "NO"
   exit 666
 fi
-echo "KUBE_CONFIG: ${KUBE_CONFIG}"
+echo "${DIM}KUBE_CONFIG:${NORMAL} ${KUBE_CONFIG}"
 
 # Functions...
 
@@ -96,36 +96,36 @@ while true; do
     result=$(is_cluster_ready)
 
     if [[ "$result" == "YES" ]]; then
-        echo "Yes"
+        print_green "Yes"
         break
     fi
 
-    echo "No"
+    print_red "No"
     sleep 10
 
 done
 
 print_divider
-echo "kubectl cluster-info"
+print_dim "kubectl cluster-info"
 print_divider
 kubectl cluster-info
 
 print_divider
-echo "kubectl get nodes"
+print_dim "kubectl get nodes"
 print_divider
 kubectl get nodes
 
-footer "IS CLUSTER READY? *YES* :-)"
+footer "IS CLUSTER READY?" "YES"
 
 # Error Handling...
 
-function error() {  
+function handle_error() {  
   local line_number=$1
   local command=$2
   echo "Failed at line: ${line_number}, doing: ${command}"
-  header "IS CLUSTER READY? *NO* An unexpected error occurred! :-("
+  error "IS CLUSTER READY? An unexpected error occurred! :-(" "ERROR"
 }
 
-trap 'error ${LINENO} $BASH_COMMAND' ERR
+trap 'handle_error ${LINENO} $BASH_COMMAND' ERR
 
 exit 0
