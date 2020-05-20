@@ -65,54 +65,22 @@ print_divider
 
 # Functions...
 
-are_deployments_ready () {
-        
+print_deployment_status() {
+
+  deployments=$1 
+  attempt=$2
+
+  echo "Attempt ${attempt} of 99"
+
+  IFS='|' read -r -a deployments_array <<< "${deployments}"
+  
   print_deployment_headers
-  
-  local is_ready="Yes"
-
-  local deployments_json=$($GET_DEPLOYMENTS_COMMAND)  
-  local number_of_deployments=$(jq '.items | length' <<< $deployments_json)  
-  
-  for ((i = 0 ; i < number_of_deployments ; i++)); do
-   
-    deployment_json=$(jq --arg i ${i} '.items[$i|tonumber]' <<< $deployments_json)
-    
-    local deployment_name=$(jq  -r '.metadata.name' <<< $deployment_json)
-    
-    local ready=$(jq '.status.readyReplicas' <<< $deployment_json)
-    if [[ $(is_numeric $ready) == "NO" ]]; then
-      ready=0
-    fi
-    
-    local expected=$(jq '.spec.replicas' <<< $deployment_json)
-    
-    local available=$(jq '.status.availableReplicas' <<< $deployment_json)
-    if [[ $(is_numeric $available) == "NO" ]]; then
-      available=0
-    fi
-            
-    local updated=$(jq '.status.updatedReplicas' <<< $deployment_json)
-    if [[ $(is_numeric $updated) == "NO" ]]; then
-      updated=0
-    fi
-
-    print_deployment_row $ready $expected $available $updated $deployment_name
-      
-    if [ $ready -ne $expected ]; then
-      is_ready="No"  
-    fi
-      
+  for ((i = 0 ; i < ${#deployments_array[*]} ; i++)); do
+    IFS=',' read -r -a row <<< "${deployments_array[i]}"
+    print_deployment_row ${row[0]} ${row[1]} ${row[2]} ${row[3]} ${row[4]}
   done
-    
-  #bash ${DIRECTORY}/print_deployment_header.sh
-      
-  if [[ "$is_ready" == "Yes" ]]; then
-    return 1
-  fi 
-  
-  return 0
-  
+  print_deployment_header
+
 }
 
 export KUBECONFIG=${KUBE_CONFIG}
@@ -126,35 +94,43 @@ if [[ ${number_of_deployments} == 0 ]]; then
   exit 666  
 else
 
-echo "Are deployment(s) ready...?"
+#echo "Deployment(s) Status:"
+attempt=1
 while true; do
 
-    are_deployments_ready 
+  results=$(deployment_statuses)
+  if [[ ${results} == "" ]]; then
+    echo "All deployment(s) are ready."   
+    break
+  fi
 
-    if [[ $? == 1 ]]; then
-        break
-    fi
+  if [[ $((attempt)) -gt 99 ]]; then
+    echo "Too many attempts, giving up!"   
+    break
+  fi
 
-    sleep 10
+  print_deployment_status ${results} ${attempt}  
+  attempt=$((attempt+1))
+  
+  sleep 10
 
 done
   
 fi
 
 print_divider
-if [[ -z "${NAMESPACE}" ]]; then
+if [[ "${NAMESPACE}" == "ALL" ]]; then
     echo "kubectl get all --all-namespaces"
     print_divider
-    kubectl get all --all-namespaces    
+    kubectl get deployments --all-namespaces    
 else
     echo "kubectl get all --namespace ${NAMESPACE}"
     print_divider
-    kubectl get all --namespace ${NAMESPACE}
+    kubectl get deployments --namespace ${NAMESPACE}
 fi
 print_divider
 
 footer "ARE DEPLOYMENTS READY? *YES*"
-
 
 # Error Handling...
 
