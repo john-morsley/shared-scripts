@@ -24,49 +24,54 @@
 # - kubectl
 # - jq
 
-DIRECTORY="$(dirname "$0")"
-echo "DIRECTORY: ${DIRECTORY}"
-
-source ${DIRECTORY}/../common/header.sh
-
 # Expects:
 # 1 --> KUBE_CONFIG (Required): The full path and filename to where the 
 #                               kube-config YAML file is located.
 # 2 --> NAMESPACE (Optional): A Namespace to filter by. 
 
-KUBE_CONGIG=$1
-NAMESPACE=$2
+set -e -o pipefail -u
 
-bash ${DIRECTORY}/../common/header.sh "ARE DEPLOYMENTS READY...?"
-echo "DIRECTORY: ${DIRECTORY}"
+set -x
 
-#bash ${DIRECTORY}/print_divider.sh
+DIRECTORY="$(dirname "$0")"
+
+source ${DIRECTORY}/../common/header.sh
+source ${DIRECTORY}/../common/divider.sh
+source ${DIRECTORY}/../common/is_numeric.sh
+source ${DIRECTORY}/../common/footer.sh
+source ${DIRECTORY}/deployment_functions.sh
+
+header "ARE DEPLOYMENTS READY?"
+
+# Parameters...
+
+KUBE_CONFIG=$1
 if [[ -z "${KUBE_CONFIG}" ]]; then   
-    echo "No KUBE_CONFIG supplied."
+    echo "No KUBE_CONFIG supplied!"
+    footer "ARE DEPLOYMENTS READY? *NO*"
     exit 666
 fi
-echo "KUBE_CONFIG:" ${KUBE_CONGIG}
+echo "KUBE_CONFIG:" ${KUBE_CONFIG}
 
-if [[ -z "${NAMESPACE}" ]]; then
+NAMESPACE=${2:-"ALL"}
+if [[ ${NAMESPACE} == "ALL" ]]; then
     echo "No namespace supplied."
-    GET_DEPLOYMENTS="kubectl get deployments --all-namespaces --output json"
+    GET_DEPLOYMENTS_COMMAND="kubectl get deployments --all-namespaces --output json"
 else
     echo "NAMESPACE:" ${NAMESPACE}
-    GET_DEPLOYMENTS="kubectl get deployments --namespace ${NAMESPACE} --output json"
+    GET_DEPLOYMENTS_COMMAND="kubectl get deployments --namespace ${NAMESPACE} --output json"
 fi
-bash ${DIRECTORY}/print_divider.sh
+print_divider
 
-export KUBECONFIG=${KUBE_CONGIG_FOLDER}/kube-config.yaml
-
-#kubectl get nodes
+# Functions...
 
 are_deployments_ready () {
         
-  bash ${DIRECTORY}/print_deployment_headers.sh
+  print_deployment_headers
   
   is_ready="Yes"
 
-  deployments_json=$($GET_DEPLOYMENTS)  
+  deployments_json=$($GET_DEPLOYMENTS_COMMAND)  
   number_of_deployments=$(jq '.items | length' <<< $deployments_json)  
   
   for ((i = 0 ; i < number_of_deployments ; i++)); do
@@ -76,19 +81,19 @@ are_deployments_ready () {
     deployment_name=$(jq  -r '.metadata.name' <<< $deployment_json)
     
     ready=$(jq '.status.readyReplicas' <<< $deployment_json)
-    if bash ${DIRECTORY}/is_numeric.sh $ready; then
+    if [[ is_numeric $ready ]]; then
       ready=0
     fi
     
     expected=$(jq '.spec.replicas' <<< $deployment_json)
     
     available=$(jq '.status.availableReplicas' <<< $deployment_json)
-    if bash "${DIRECTORY}/is_numeric.sh" $available; then
+    if [[ is_numeric $available ]]; then
       available=0
     fi
             
     updated=$(jq '.status.updatedReplicas' <<< $deployment_json)
-    if bash "${DIRECTORY}/is_numeric.sh" $updated; then
+    if [[ is_numeric $updated ]]; then
       updated=0
     fi
 
@@ -102,7 +107,7 @@ are_deployments_ready () {
     
   bash ${DIRECTORY}/print_deployment_header.sh
       
-  if [ "$is_ready" == "Yes" ]; then
+  if [[ "$is_ready" == "Yes" ]]; then
     return 1
   fi 
   
@@ -110,13 +115,18 @@ are_deployments_ready () {
   
 }
 
-deployments_json=$($GET_DEPLOYMENTS)  
+export KUBECONFIG=${KUBE_CONFIG}
+
+deployments_json=$($GET_DEPLOYMENTS_COMMAND)  
 number_of_deployments=$(jq '.items | length' <<< $deployments_json)  
 
-if [[ number_of_deployments == 0 ]]; then 
+if [[ ${number_of_deployments} == 0 ]]; then 
   echo "No deployments!"
+  footer "IS CLUSTER READY? *NO* :-("
+  exit 666  
 else
 
+echo "Are deployment(s) ready...?"
 while true; do
 
     are_deployments_ready 
@@ -131,16 +141,30 @@ done
   
 fi
 
-bash ${DIRECTORY}/print_divider.sh
+print_divider
 if [[ -z "${NAMESPACE}" ]]; then
     echo "kubectl get all --all-namespaces"
-    bash ${DIRECTORY}/print_divider.sh
+    print_divider
     kubectl get all --all-namespaces    
 else
     echo "kubectl get all --namespace ${NAMESPACE}"
-    bash ${DIRECTORY}/print_divider.sh
+    print_divider
     kubectl get all --namespace ${NAMESPACE}
 fi
-bash ${DIRECTORY}/print_divider.sh
+print_divider
 
-bash ${DIRECTORY}/footer.sh "DEPLOYMENTS ARE READY"
+footer "ARE DEPLOYMENTS READY? *YES*"
+
+
+# Error Handling...
+
+function error() {  
+  local line_number=$1
+  local command=$2
+  echo "Failed at line: ${line_number}, doing: ${command}"
+  header "IS CLUSTER READY? *NO* An unexpected error occurred! :-("
+}
+
+trap 'error ${LINENO} $BASH_COMMAND' ERR
+
+exit 0
