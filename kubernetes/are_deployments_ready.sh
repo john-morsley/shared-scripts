@@ -31,7 +31,7 @@
 
 set -e -o pipefail -u
 
-set -x
+#set -x
 
 DIRECTORY="$(dirname "$0")"
 
@@ -69,31 +69,31 @@ are_deployments_ready () {
         
   print_deployment_headers
   
-  is_ready="Yes"
+  local is_ready="Yes"
 
-  deployments_json=$($GET_DEPLOYMENTS_COMMAND)  
-  number_of_deployments=$(jq '.items | length' <<< $deployments_json)  
+  local deployments_json=$($GET_DEPLOYMENTS_COMMAND)  
+  local number_of_deployments=$(jq '.items | length' <<< $deployments_json)  
   
   for ((i = 0 ; i < number_of_deployments ; i++)); do
    
     deployment_json=$(jq --arg i ${i} '.items[$i|tonumber]' <<< $deployments_json)
     
-    deployment_name=$(jq  -r '.metadata.name' <<< $deployment_json)
+    local deployment_name=$(jq  -r '.metadata.name' <<< $deployment_json)
     
-    ready=$(jq '.status.readyReplicas' <<< $deployment_json)
-    if [[ is_numeric $ready ]]; then
+    local ready=$(jq '.status.readyReplicas' <<< $deployment_json)
+    if [[ $(is_numeric $ready) == "NO" ]]; then
       ready=0
     fi
     
-    expected=$(jq '.spec.replicas' <<< $deployment_json)
+    local expected=$(jq '.spec.replicas' <<< $deployment_json)
     
-    available=$(jq '.status.availableReplicas' <<< $deployment_json)
-    if [[ is_numeric $available ]]; then
+    local available=$(jq '.status.availableReplicas' <<< $deployment_json)
+    if [[ $(is_numeric $available) == "NO" ]]; then
       available=0
     fi
             
-    updated=$(jq '.status.updatedReplicas' <<< $deployment_json)
-    if [[ is_numeric $updated ]]; then
+    local updated=$(jq '.status.updatedReplicas' <<< $deployment_json)
+    if [[ $(is_numeric $updated) == "NO" ]]; then
       updated=0
     fi
 
@@ -105,7 +105,7 @@ are_deployments_ready () {
       
   done
     
-  bash ${DIRECTORY}/print_deployment_header.sh
+  #bash ${DIRECTORY}/print_deployment_header.sh
       
   if [[ "$is_ready" == "Yes" ]]; then
     return 1
