@@ -1,141 +1,139 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-#         /\             
-#        /  \   _ __ ___ 
-#       / /\ \ | '__/ _ \
-#      / ____ \| | |  __/
-#     /_/    \_\_|  \___|                       
-#           _____             _                                  _       
-#          |  __ \           | |                                | |      
-#          | |  | | ___ _ __ | | ___  _   _ _ __ ___   ___ _ __ | |_ ___ 
-#          | |  | |/ _ \ '_ \| |/ _ \| | | | '_ ` _ \ / _ \ '_ \| __/ __|
-#          | |__| |  __/ |_) | | (_) | |_| | | | | | |  __/ | | | |_\__ \
-#          |_____/ \___| .__/|_|\___/ \__, |_| |_| |_|\___|_| |_|\__|___/
-#                      | |   _____     __/ |      _         ___                               
-#                      |_|  |  __ \   |___/      | |       |__ \ 
-#                           | |__) |___  __ _  __| |_   _     ) |
-#                           |  _  // _ \/ _` |/ _` | | | |   / / 
-#                           | | \ \  __/ (_| | (_| | |_| |  |_|  
-#                           |_|  \_\___|\__,_|\__,_|\__, |  (_)  
-#                                                    __/ |       
-#                                                   |___/        
+#      _____        _____ _           _              
+#     |_   _|      / ____| |         | |            
+#       | |  ___  | |    | |_   _ ___| |_ ___ _ __ 
+#       | | / __| | |    | | | | / __| __/ _ \ '__| 
+#      _| |_\__ \ | |____| | |_| \__ \ ||  __/ |     
+#     |_____|___/  \_____|_|\__,_|___/\__\___|_|     
+#           _____                _         ___  
+#          |  __ \              | |       |__ \ 
+#          | |__) |___  __ _  __| |_   _     ) |
+#          |  _  // _ \/ _` |/ _` | | | |   / / 
+#          | | \ \  __/ (_| | (_| | |_| |  |_|  
+#          |_|  \_\___|\__,_|\__,_|\__, |  (_)  
+#                                   __/ |       
+#                                  |___/        
+
+#set -e -o pipefail -u
+#set -e
+
+set -x
 
 # Requires:
 # - kubectl
 # - jq
 
-# Expects:
-# 1 --> KUBE_CONGIG_FOLDER (Required): The full path where the kube_config.yaml file is located.
-# 2 --> NAMESPACE (Optional): A Namespace to filter by. 
-
-KUBE_CONGIG_FOLDER=$1
-NAMESPACE=$2
 DIRECTORY="$(dirname "$0")"
-
-bash ${DIRECTORY}/../common/header.sh "ARE DEPLOYMENTS READY...?"
 echo "DIRECTORY: ${DIRECTORY}"
 
-bash ${DIRECTORY}/print_divider.sh
-if [[ -z "${KUBE_CONGIG_FOLDER}" ]]; then   
-    echo "No KUBE_CONGIG_FOLDER supplied."
-    exit 666
-fi
-echo "KUBE_CONGIG_FOLDER:" ${KUBE_CONGIG_FOLDER}
+source ${DIRECTORY}/../common/error.sh
+source ${DIRECTORY}/../common/header.sh
+source ${DIRECTORY}/../common/footer.sh
 
-if [[ -z "${NAMESPACE}" ]]; then
-    echo "No namespace supplied."
-    GET_DEPLOYMENTS="kubectl get deployments --all-namespaces --output json"
-else
-    echo "NAMESPACE:" ${NAMESPACE}
-    GET_DEPLOYMENTS="kubectl get deployments --namespace ${NAMESPACE} --output json"
-fi
-bash ${DIRECTORY}/print_divider.sh
+# Expects:
+# 1 --> KUBE_CONFIG (Required): The full path and filename to where the 
+#                               kube-config YAML file is located.
 
-export KUBECONFIG=${KUBE_CONGIG_FOLDER}/kube-config.yaml
+KUBE_CONFIG=$1
 
-#kubectl get nodes
+# Error Handling...
 
-are_deployments_ready () {
-        
-  bash ${DIRECTORY}/print_deployment_headers.sh
-  
-  is_ready="Yes"
-
-  deployments_json=$($GET_DEPLOYMENTS)  
-  number_of_deployments=$(jq '.items | length' <<< $deployments_json)  
-  
-  for ((i = 0 ; i < number_of_deployments ; i++)); do
-   
-    deployment_json=$(jq --arg i ${i} '.items[$i|tonumber]' <<< $deployments_json)
-    
-    deployment_name=$(jq  -r '.metadata.name' <<< $deployment_json)
-    
-    ready=$(jq '.status.readyReplicas' <<< $deployment_json)
-    if bash ${DIRECTORY}/is_numeric.sh $ready; then
-      ready=0
-    fi
-    
-    expected=$(jq '.spec.replicas' <<< $deployment_json)
-    
-    available=$(jq '.status.availableReplicas' <<< $deployment_json)
-    if bash "${DIRECTORY}/is_numeric.sh" $available; then
-      available=0
-    fi
-            
-    updated=$(jq '.status.updatedReplicas' <<< $deployment_json)
-    if bash "${DIRECTORY}/is_numeric.sh" $updated; then
-      updated=0
-    fi
-
-    bash ${DIRECTORY}/print_deployment_row.sh $ready $expected $available $updated $deployment_name
-      
-    if [ $ready -ne $expected ]; then
-      is_ready="No"  
-    fi
-      
-  done
-    
-  bash ${DIRECTORY}/print_deployment_header.sh
-      
-  if [ "$is_ready" == "Yes" ]; then
-    return 1
-  fi 
-  
-  return 0
-  
+function error() {  
+  local line_number=$1
+  local command=$2
+  echo "Failed at line: ${line_number}, doing: ${command}"
+  header "IS CLUSTER READY? *NO* An unexpected error occurred! :-("
 }
 
-deployments_json=$($GET_DEPLOYMENTS)  
-number_of_deployments=$(jq '.items | length' <<< $deployments_json)  
+trap 'error ${LINENO} $BASH_COMMAND' ERR
 
-if [[ number_of_deployments == 0 ]]; then 
-  echo "No deployments!"
-else
+# Parameters...
+
+header "IS CLUSTER READY?"
+
+#bash ${DIRECTORY}/print_divider.sh
+
+if [[ -z "${KUBE_CONFIG}" ]]; then
+  echo "No KUBE_CONFIG supplied."
+  footer "IS CLUSTER READY? *NO* :-("
+  exit 666
+fi
+echo "KUBE_CONFIG: ${KUBE_CONFIG}"
+
+#bash ${DIRECTORY}/print_divider.sh
+
+export KUBECONFIG=${KUBE_CONFIG}         
+
+function is_cluster_ready () {
+
+    nodes_json=$(kubectl get nodes --output "json" 2>/dev/null)
+
+    if [ -z "$nodes_json" ]; then
+      #echo "No"
+      #return 1
+      echo "NO"
+    fi
+
+    number_of_nodes=$(jq '.items | length' <<< $nodes_json)
+
+    if [[ $number_of_nodes == 0 ]]; then
+        #echo "No - Number of Nodes: ${number_of_nodes}"
+        #return 1
+        echo "NO"
+    fi
+
+    #feedback="Number of Nodes: ${number_of_nodes} | "
+
+    for ((i = 0 ; i < number_of_nodes ; i++))
+    do
+        node_json=$(jq --arg i ${i} '.items[$i|tonumber]' <<< $nodes_json)
+        node_name=$(jq '.metadata.name' <<< $node_json)
+        node_status=$(jq '.status.conditions[] | select(.reason == "KubeletReady") | .type' <<< $node_json)
+        #feedback+="Node $((i+1)): ${node_name} | Status: ${node_status}"
+    done
+
+    if [[ "${node_status}" == "Ready" ]]; then
+        echo "YES"
+    fi
+    echo "NO"
+
+}  
+
+#bash ${DIRECTORY}/print_divider.sh
+echo "kubectl config current-context"
+#bash ${DIRECTORY}/print_divider.sh
+kubectl config current-context
+#bash ${DIRECTORY}/print_divider.sh
+
+echo "Are node(s) up...?"
 
 while true; do
 
-    are_deployments_ready 
+    result=$(is_cluster_ready)
 
-    if [[ $? == 1 ]]; then
+    if [[ "$result" == "YES" ]]; then
         break
     fi
 
     sleep 10
 
 done
-  
-fi
 
-bash ${DIRECTORY}/print_divider.sh
-if [[ -z "${NAMESPACE}" ]]; then
-    echo "kubectl get all --all-namespaces"
-    bash ${DIRECTORY}/print_divider.sh
-    kubectl get all --all-namespaces    
-else
-    echo "kubectl get all --namespace ${NAMESPACE}"
-    bash ${DIRECTORY}/print_divider.sh
-    kubectl get all --namespace ${NAMESPACE}
-fi
-bash ${DIRECTORY}/print_divider.sh
+#bash ${DIRECTORY}/print_divider.sh
+echo "kubectl cluster-info"
+#bash ${DIRECTORY}/print_divider.sh
+kubectl cluster-info
 
-bash ${DIRECTORY}/footer.sh "DEPLOYMENTS ARE READY"
+#bash ${DIRECTORY}/print_divider.sh
+echo "kubectl get nodes"
+#bash ${DIRECTORY}/print_divider.sh
+kubectl get nodes
+
+#bash ${DIRECTORY}/print_divider.sh
+
+footer "IS CLUSTER READY? *YES* :-)"
+
+#bash ${DIRECTORY}/are_deployments_ready.sh ${FOLDER}
+
+exit 0

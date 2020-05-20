@@ -3,7 +3,12 @@
 DIRECTORY="$(dirname "$0")"
 
 source ${DIRECTORY}/common/header.sh
+source ${DIRECTORY}/common/footer.sh
 
-header "Hello, World!"
+header "Test"
+
+echo "Hello, World! :-)"
+
+footer "Test"
 
 exit 0
