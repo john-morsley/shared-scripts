@@ -145,7 +145,7 @@ function print_ec2_status() {
     # 0 (pending) - blue
     # 16 (running) - green
     # 32 (shutting-down) - yellow 
-    # 48 (terminated) - red
+    # 48 (terminated) - dim
     # 64 (stopping) - red
     # 80 (stopped) - red
 
@@ -156,20 +156,42 @@ function print_ec2_status() {
         print_green "${instance_state}"
     elif [[ ${instance_state} == "shutting-down" ]]; then
         print_green "${instance_state}"        
+    elif [[ ${instance_state} == "terminated" ]]; then
+        print_dim "${instance_state}"        
     else
         print_red "${instance_state}"
     fi
 
+    # The valid values are: 
+    # passed - green
+    # failed - red
+    # initializing - yellow
+    # insufficient-data - dim 
+
     print_dim "  |  Instance Status: "
     if [[ ${instance_status} == "passed" ]]; then
         print_green "${instance_status}"        
+    elif [[ ${instance_status} == "initializing" ]]; then
+        print_yellow "${instance_status}"        
+    elif [[ ${instance_status} == "insufficient-data" ]]; then
+        print_dim "${instance_status}"        
     else
         print_red "${instance_status}"
     fi
     
+    # The valid values are: 
+    # passed - green
+    # failed - red
+    # initializing - yellow
+    # insufficient-data - dim
+
     print_dim "  |  System Status: "
     if [[ ${system_status} == "passed" ]]; then
         print_green "${system_status}"        
+    elif [[ ${instance_status} == "initializing" ]]; then
+        print_yellow "${instance_status}"        
+    elif [[ ${instance_status} == "insufficient-data" ]]; then
+        print_dim "${instance_status}"        
     else
         print_red "${system_status}"
     fi
