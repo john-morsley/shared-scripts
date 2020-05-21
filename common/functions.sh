@@ -66,21 +66,43 @@ function is_numeric() {
 
 }
 
+function print_blue {
+  TEXT=$1  
+  printf "${BLUE}${TEXT}${NORMAL}"
+}
+
 function print_dim {
   TEXT=$1  
-  echo "${DIM}${TEXT}${NORMAL}"
+  printf "${DIM}${TEXT}${NORMAL}"
 }
 
 function print_divider {  
-  echo "${DIM}--------------------------------------------------------------------------------${NORMAL}"
+  printf "${DIM}--------------------------------------------------------------------------------${NORMAL}\n"
+}
+
+function print_key_value_pair {
+  KEY=$1
+  VALUE=$2  
+  UNITS=${3:-""}
+  printf "${DIM}${KEY}: ${NORMAL}${VALUE} ${DIM}${UNITS}${NORMAL}\n"
 }
 
 function print_green {
   TEXT=$1  
-  echo "${GREEN}${TEXT}${NORMAL}"
+  printf "${GREEN}${TEXT}${NORMAL}"
+}
+
+function print_normal {
+  TEXT=$1  
+  printf "${DIM}${TEXT}${NORMAL}"
 }
 
 function print_red {
   TEXT=$1  
-  echo "${RED}${TEXT}${NORMAL}"
+  printf "${RED}${TEXT}${NORMAL}"
+}
+
+function print_yellow {
+  TEXT=$1  
+  printf "${YELLOW}${TEXT}${NORMAL}"
 }

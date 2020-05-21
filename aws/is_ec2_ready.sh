@@ -21,7 +21,7 @@
 
 DIRECTORY="$(dirname "$0")"
 
-source ${DIRECTORY}/../common/header.sh
+source ${DIRECTORY}/../common/functions.sh
 
 # Expects:
 # 1 --> NAME (Required): The name of the EC2 instance we are checking.
@@ -31,36 +31,39 @@ header "IS EC2 READY?"
 
 NAME=$1
 if [[ -z "${NAME}" ]]; then
-    echo "No NAME supplied!"
+    print_normal "No NAME supplied!\n"
     exit 666
 fi
-echo "NAME: ${NAME}"
+print_key_value_pair "NAME" "${NAME}"
 
 TIMEOUT=$2
 if [[ -z "${TIMEOUT}" ]]; then
     echo "No TIMEOUT supplied, so defaulting to 5 minutes."
     TIMEOUT=5
 fi
-echo "TIMEOUT: ${TIMEOUT} (minutes)"
+print_key_value_pair "TIMEOUT" "${TIMEOUT}" "minutes"
 
-echo "Looking for instance: '${NAME}'"
+print_divider
+
+print_key_value_pair "Looking for instance" "${NAME}"
 
 elapsed=0
 while [[ elapsed -le TIMEOUT*60 ]]
 do
-    echo "Elapsed: ${elapsed}s"
-    
+  
     reservations_json=$(aws ec2 describe-instances --filter Name=instance-state-code,Values="16")
     # The valid values are: 0 (pending), 16 (running), 32 (shutting-down), 48 (terminated), 64 (stopping), and 80 (stopped). 
 
     raw_instance_ids="$(jq --raw-output --arg name "$NAME" '.Reservations[].Instances[] as $instance | $instance.Tags[] | select(.Key=="Name") | .Value==$name | contains(true)? | if true then $instance | .InstanceId else null end' <<< $reservations_json)"
 
     if [[ -z "${raw_instance_ids}" ]]; then
-        echo "Cannot find instance."
+        print_normal "Cannot find instance.\n"
     else
-        echo "Found!"
+        print_green "Found!\n"
         break
     fi
+
+    print_key_value_pair "Elapsed" "${elapsed}" "s"
 
     sleep 5
     elapsed=$((elapsed + 5))
@@ -74,16 +77,16 @@ read -rd '' -a split_instance_ids <<< $raw_instance_ids
 unset IFS
 count=0
 for instance_id in "${split_instance_ids[@]}"; do
-  echo "Instance ID: $instance_id"
-  count=$((count + 1))
+    print_key_value_pair "Instance ID" "${instance_id}"
+    count=$((count + 1))
 done
 set +f
-echo "count: ${count}"
+print_key_value_pair "Count" "${count}"
 
 if [[ count -gt 1 ]]; then
-  echo "Found more than one instance with name: '${NAME}'"
-  echo "EC2 IS NOT READY :-("
-  exit 666
+    print_normal "Found more than one instance with name: '${NAME}'"
+    echo "IS EC2 NOT READY" "NO"
+    exit 666
 fi
 
 is_empty() {
@@ -98,9 +101,9 @@ is_empty() {
 
 }
 
-is_ec2_ready() {
+function is_ec2_ready() {
 
-    instance_statuses=$(aws ec2 describe-instance-status --instance-ids $instance_id)
+    local instance_statuses=$(aws ec2 describe-instance-status --instance-ids $instance_id)
 
     is_empty "${instance_statuses}"
 
@@ -108,19 +111,21 @@ is_ec2_ready() {
         return 0
     fi
     
-    instance_state=$(jq --raw-output '.InstanceStatuses[].InstanceState.Name' <<< $instance_statuses)
+    local instance_state=$(jq --raw-output '.InstanceStatuses[].InstanceState.Name' <<< $instance_statuses)
         
     if [[ "$instance_state" != "running" ]]; then
         echo "Instance State: '${instance_state}'"
         return 0
     fi
     
-    instance_status=$(jq --raw-output '.InstanceStatuses[].InstanceStatus.Details[] | select(.Name=="reachability") | .Status' <<< $instance_statuses)
+    local instance_status=$(jq --raw-output '.InstanceStatuses[].InstanceStatus.Details[] | select(.Name=="reachability") | .Status' <<< $instance_statuses)
         
-    system_status=$(jq --raw-output '.InstanceStatuses[].SystemStatus.Details[] | select(.Name=="reachability") | .Status' <<< $instance_statuses)
+    local system_status=$(jq --raw-output '.InstanceStatuses[].SystemStatus.Details[] | select(.Name=="reachability") | .Status' <<< $instance_statuses)
     
-    echo "Instance State: '${instance_state}', Instance Status: '${instance_status}', System Status: '${system_status}'"
+    #echo "Instance State: '${instance_state}', Instance Status: '${instance_status}', System Status: '${system_status}'"
     
+    print_ec2_status "${instance_state}" "${instance_status}" "${system_status}"
+           
     if [[ "$instance_status" != "passed" || "$system_status" != "passed" ]]; then                        
         return 0
     fi
@@ -130,10 +135,55 @@ is_ec2_ready() {
 
 }
 
+function print_ec2_status() {
+
+    instance_state=$1
+    instance_status=$2
+    system_status=$3
+    
+    # The valid values are: 
+    # 0 (pending) - blue
+    # 16 (running) - green
+    # 32 (shutting-down) - yellow 
+    # 48 (terminated) - red
+    # 64 (stopping) - red
+    # 80 (stopped) - red
+
+    print_dim "Instance State: "
+    if [[ ${instance_state} == "pending" ]]; then
+        print_blue "${instance_state}"
+    elif [[ ${instance_state} == "running" ]]; then
+        print_green "${instance_state}"
+    elif [[ ${instance_state} == "shutting-down" ]]; then
+        print_green "${instance_state}"        
+    else
+        print_red "${instance_state}"
+    fi
+
+    print_dim "  |  Instance Status: "
+    if [[ ${instance_status} == "passed" ]]; then
+        print_green "${instance_status}"        
+    else
+        print_red "${instance_status}"
+    fi
+    
+    print_dim "  |  System Status: "
+    if [[ ${system_status} == "passed" ]]; then
+        print_green "${system_status}"        
+    else
+        print_red "${system_status}"
+    fi
+    printf "\n"
+
+    #echo "Instance State: '${instance_state}', Instance Status: '${instance_status}', System Status: '${system_status}'"
+
+}
+
 ready=false
 while [[ elapsed -le TIMEOUT*60 ]]
-do
-    echo "elapsed: ${elapsed}s"
+do    
+
+    print_key_value_pair "Elapsed" "${elapsed}" "s"
     
     is_ec2_ready
 
@@ -147,10 +197,9 @@ do
 done
 
 if [[ "$ready" == true ]]; then
-    header "EC2 IS READY :-)"
+    footer "IS EC2 READY?" "YES"
     exit 0
 fi 
 
-header "EC2 IS NOT READY :-("
-
+footer "IS EC2 READY?" "NO"
 exit 666

@@ -61,6 +61,7 @@ else
     echo "${DIM}NAMESPACE:${NORMAL} ${NAMESPACE}"
     GET_DEPLOYMENTS_COMMAND="kubectl get deployments --namespace ${NAMESPACE} --output json"
 fi
+
 print_divider
 
 # Functions...
