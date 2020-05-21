@@ -191,8 +191,8 @@ do
         break
     fi
 
-    sleep 5
-    elapsed=$((elapsed + 5))
+    sleep 10
+    elapsed=$((elapsed + 10))
 
 done
 
