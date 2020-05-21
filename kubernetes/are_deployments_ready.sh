@@ -121,11 +121,11 @@ fi
 
 print_divider
 if [[ "${NAMESPACE}" == "ALL" ]]; then
-    echo "kubectl get all --all-namespaces"
+    echo "kubectl get deployments --all-namespaces"
     print_divider
     kubectl get deployments --all-namespaces    
 else
-    echo "kubectl get all --namespace ${NAMESPACE}"
+    echo "kubectl get deployments --namespace ${NAMESPACE}"
     print_divider
     kubectl get deployments --namespace ${NAMESPACE}
 fi
