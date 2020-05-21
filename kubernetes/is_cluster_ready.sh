@@ -42,7 +42,7 @@ if [[ -z "${KUBE_CONFIG}" ]]; then
   footer "IS CLUSTER READY?" "NO"
   exit 666
 fi
-echo "${DIM}KUBE_CONFIG:${NORMAL} ${KUBE_CONFIG}"
+print_key_value_pair "KUBE_CONFIG" "${KUBE_CONFIG}"
 
 # Functions...
 
@@ -87,7 +87,7 @@ function is_cluster_ready () {
 export KUBECONFIG=${KUBE_CONFIG}
 print_divider
 current_context=$(kubectl config current-context)
-echo "kubectl config current-context: ${current_context}"
+print_key_value_pair "kubectl config current-context" "${current_context}"
 print_divider
 
 echo "Are node(s) up...?"
@@ -96,22 +96,22 @@ while true; do
     result=$(is_cluster_ready)
 
     if [[ "$result" == "YES" ]]; then
-        print_green "Yes"
+        print_green "Yes\n"
         break
     fi
 
-    print_red "No"
+    print_red "No\n"
     sleep 10
 
 done
 
 print_divider
-print_dim "kubectl cluster-info"
+print_dim "kubectl cluster-info\n"
 print_divider
 kubectl cluster-info
 
 print_divider
-print_dim "kubectl get nodes"
+print_dim "kubectl get nodes\n"
 print_divider
 kubectl get nodes
 

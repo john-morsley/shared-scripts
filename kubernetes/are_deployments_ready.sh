@@ -100,7 +100,7 @@ attempt=1
 while true; do
 
   results=$(deployment_statuses)
-  if [[ ${results} == "" ]]; then
+  if [[ ${results} == "" ]]; then  
     echo "All deployment(s) are ready."   
     break
   fi
