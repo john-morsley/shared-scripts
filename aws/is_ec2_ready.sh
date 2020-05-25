@@ -63,7 +63,7 @@ do
         break
     fi
 
-    print_key_value_pair "Elapsed" "${elapsed}" "s"
+    #print_key_value_pair "Elapsed" "${elapsed}" "s"
 
     sleep 10
     elapsed=$((elapsed + 10))
@@ -205,7 +205,7 @@ ready=false
 while [[ elapsed -le TIMEOUT*60 ]]
 do    
 
-    print_key_value_pair "Elapsed" "${elapsed}" "s"
+    #print_key_value_pair "Elapsed" "${elapsed}" "s"
     
     is_ec2_ready
 
