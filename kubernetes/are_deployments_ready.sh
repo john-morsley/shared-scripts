@@ -31,8 +31,6 @@
 
 set -e -o pipefail -u
 
-#set -x
-
 DIRECTORY="$(dirname "$0")"
 
 source ${DIRECTORY}/../common/functions.sh
@@ -95,12 +93,16 @@ if [[ ${number_of_deployments} == 0 ]]; then
   exit 666  
 else
 
-#echo "Deployment(s) Status:"
 attempt=1
 while true; do
 
   results=$(deployment_statuses)
-  if [[ ${results} == "" ]]; then  
+
+  IFS=':' read -r -a kvp <<< "${results}"
+  
+  print_deployment_status ${kvp[1]} ${attempt}
+  
+  if [[ ${kvp[0]} == "Yes" ]]; then      
     echo "All deployment(s) are ready."   
     break
   fi
@@ -110,7 +112,6 @@ while true; do
     break
   fi
 
-  print_deployment_status ${results} ${attempt}  
   attempt=$((attempt+1))
   
   sleep 10
@@ -121,13 +122,13 @@ fi
 
 print_divider
 if [[ "${NAMESPACE}" == "ALL" ]]; then
-    echo "kubectl get deployments --all-namespaces"
+    echo "kubectl get all --all-namespaces"
     print_divider
     kubectl get all --all-namespaces    
 else
     echo "kubectl get all --namespace ${NAMESPACE}"
     print_divider
-    kubectl get deployments --namespace ${NAMESPACE}
+    kubectl get all --namespace ${NAMESPACE}
 fi
 print_divider
 

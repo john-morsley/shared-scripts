@@ -94,11 +94,8 @@ function deployment_statuses () {
   for ((i = 0 ; i < number_of_deployments ; i++)); do
     results+="${deployments[i]}|"
   done
-      
-  if [[ "$is_ready" == "Yes" ]]; then
-    echo ""
-  else
-    echo ${results}
-  fi 
+  results=${results::-1}    
+        
+  echo "${is_ready}:${results}"
   
 }

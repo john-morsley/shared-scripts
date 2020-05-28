@@ -23,7 +23,8 @@ function footer() {
   length_of_footer_text=${#FOOTER_TEXT}
   length_of_footer_status=${#STATUS}
 
-  for (( i=1; i<=78-length_of_footer_text-length_of_footer_status; i++ ))
+  printf "<"
+  for (( i=1; i<=77-length_of_footer_text-length_of_footer_status; i++ ))
   do  
     printf "="
   done 
@@ -36,7 +37,7 @@ function footer() {
   elif [[ ${STATUS} == "ERROR" ]]; then
     status_colour=${RED}
   fi
-  printf " ${BOLD}${FOOTER_TEXT}${NORMAL} ${status_colour}${STATUS}${NORMAL}"
+  printf " ${BOLD}${FOOTER_TEXT}${NORMAL} ${status_colour}${STATUS}${NORMAL}\n"
 
 }
 
@@ -46,11 +47,11 @@ function header() {
 
   LengthOfHeaderText=${#HEADER_TEXT}
 
-  for (( i=1; i<=79-LengthOfHeaderText; i++ ))
+  for (( i=1; i<=78-LengthOfHeaderText; i++ ))
   do  
-     echo -n "="
+     printf "="
   done
-  echo " ${BOLD}${HEADER_TEXT}${NORMAL}"
+  printf "> ${BOLD}${HEADER_TEXT}${NORMAL}\n"
 
 }
 
