@@ -24,11 +24,8 @@ SCRIPT_NAME=$(basename $0)
 echo "SCRIPT_NAME: ${SCRIPT_NAME}"
 
 {
-  echo "[COMMANDS TO INSTALL K3S WILL GO HERE]"
-  #echo "Download the Docker install script and execute it..."
-  #curl https://releases.rancher.com/install-docker/19.03.sh | sh
-  #echo "Add the user 'ubuntu' to the group 'docker'..."
-  #sudo usermod -aG docker ubuntu
+  echo "Download the K3s install script and execute it..."
+  curl -sfL https://get.k3s.io | sh -  
 } || {
   echo "-----------------------------------------> FAILED TRYING TO INSTALL K3S! :-(" 1>&2
   exit 255
