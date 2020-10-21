@@ -25,7 +25,8 @@ echo "SCRIPT_NAME: ${SCRIPT_NAME}"
 
 {
   echo "Download the K3s install script and execute it..."
-  curl -sfL https://get.k3s.io | sh -  
+  curl -sfL https://get.k3s.io | sh -
+  echo "export kubeconfig=$(sudo cat /etc/rancher/k3s/k3s.yaml)"
 } || {
   echo "-----------------------------------------> FAILED TRYING TO INSTALL K3S! :-(" 1>&2
   exit 255
