@@ -23,9 +23,14 @@ echo "PID: ${PID}"
 SCRIPT_NAME=$(basename $0)
 echo "SCRIPT_NAME: ${SCRIPT_NAME}"
 
+K3S_SCRIPT_URL="https://get.k3s.io"
+K3S_OPTIONS="INSTALL_K3S_VERSION=${INSTALL_K3S_VERSION}"
+
 {
   echo "Download the K3s install script and execute it..."
-  curl -sfL https://get.k3s.io | sh -
+  COMMAND = "curl -sfL ${K3S_SCRIPT_URL} | ${K3S_OPTIONS} sh -"
+  $($COMMAND)
+  echo "KubeConfig:"
   echo "export kubeconfig=$(sudo cat /etc/rancher/k3s/k3s.yaml)"
 } || {
   echo "-----------------------------------------> FAILED TRYING TO INSTALL K3S! :-(" 1>&2
