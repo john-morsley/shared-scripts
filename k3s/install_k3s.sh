@@ -27,12 +27,14 @@ INSTALL_K3S_VERSION=${1}
 echo "INSTALL_K3S_VERSION: ${INSTALL_K3S_VERSION}"
 
 K3S_SCRIPT_URL="https://get.k3s.io"
-K3S_OPTIONS="INSTALL_K3S_VERSION=${INSTALL_K3S_VERSION}"
+echo "K3S_SCRIPT_URL: ${K3S_SCRIPT_URL}"
+
+K3S_INSTALL_OPTIONS="INSTALL_K3S_VERSION=${INSTALL_K3S_VERSION}"
+echo "K3S_INSTALL_OPTIONS: ${K3S_INSTALL_OPTIONS}"
 
 {
   echo "Download the K3s install script and execute it..."
-  COMMAND="curl -sfL ${K3S_SCRIPT_URL} | ${K3S_OPTIONS} sh -"
-  $($COMMAND)
+  curl -sfL ${K3S_SCRIPT_URL} | ${K3S_INSTALL_OPTIONS} sh -
   echo "KubeConfig:"
   echo "export kubeconfig=$(sudo cat /etc/rancher/k3s/k3s.yaml)"
 } || {
