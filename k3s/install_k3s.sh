@@ -44,6 +44,11 @@ echo "K3S_INSTALL_OPTIONS: ${K3S_INSTALL_OPTIONS}"
 
 echo "------------------------------------------------------------------------------"     
 
+K3S_INSTALL_OPTIONS+="K3S_KUBECONFIG_MODE=${K3S_KUBECONFIG_MODE}"
+echo "K3S_INSTALL_OPTIONS: ${K3S_INSTALL_OPTIONS}"
+
+echo "------------------------------------------------------------------------------"     
+
 K3S_INSTALL_COMMAND="curl -sfL ${K3S_SCRIPT_URL} | ${K3S_INSTALL_OPTIONS} sh -"
 echo "K3S_INSTALL_COMMAND: ${K3S_INSTALL_COMMAND}"
 
