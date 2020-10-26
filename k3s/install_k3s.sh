@@ -52,7 +52,7 @@ echo "--------------------------------------------------------------------------
 {
   echo "Download the K3s install script and execute it..."
 
-  eval $K3S_INSTALL_COMMAND
+  eval "$K3S_INSTALL_COMMAND"
 
 #   curl -sfL ${K3S_SCRIPT_URL} | ${K3S_INSTALL_OPTIONS} sh -
 #   echo "KubeConfig:"
