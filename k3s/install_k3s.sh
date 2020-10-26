@@ -44,16 +44,15 @@ echo "K3S_INSTALL_OPTIONS: ${K3S_INSTALL_OPTIONS}"
 
 echo "------------------------------------------------------------------------------"     
 
-K3S_INSTALL_COMMAND="${K3S_SCRIPT_URL} | ${INSTALL_K3S_VERSION} sh -"
+K3S_INSTALL_COMMAND="curl -sfL ${K3S_SCRIPT_URL} | ${K3S_INSTALL_OPTIONS} sh -"
 echo "K3S_INSTALL_COMMAND: ${K3S_INSTALL_COMMAND}"
 
 echo "------------------------------------------------------------------------------"     
 
-
 {
   echo "Download the K3s install script and execute it..."
 
-  ${K3S_INSTALL_COMMAND}
+  eval $K3S_INSTALL_COMMAND
 
 #   curl -sfL ${K3S_SCRIPT_URL} | ${K3S_INSTALL_OPTIONS} sh -
 #   echo "KubeConfig:"
